@@ -1,10 +1,20 @@
 # HW 0: Noisy Planet Part 1 (Intro to Javascript and WebGL)
 
+
 <p align="center">
   <img width="360" height="360" src="https://user-images.githubusercontent.com/1758825/132532354-e3a45402-e484-499e-bfa7-2d73b9f2c946.png">
 </p>
 <p align="center">(source: Ken Perlin)</p>
+## Description
+- Implement FBM noise based custom fragment shader 
+- Implement deforming custom vertex shader
+- Add cube class & option in controls
+## Live Demo 
+https://seiseiko.github.io/hw00-webgl-intro/
 
+<p align="center">
+  <img width="360" height="360" src="https://github.com/seiseiko/hw00-webgl-intro/blob/master/screenshot.png">
+</p>
 ## Objective
 - Check that the tools and build configuration we will be using for the class works.
 - Start learning Typescript and WebGL2
