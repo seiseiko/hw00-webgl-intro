@@ -26,10 +26,13 @@ let prevTesselations: number = 5;
 function loadScene() {
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
   icosphere.create();
-  square = new Square(vec3.fromValues(0, 0, 0));
-  square.create();
+
+  //square = new Square(vec3.fromValues(0, 0, 0));
+  //square.create();
+
   cube = new Cube(vec3.fromValues(0, 0, 0));
   cube.create();
+
 }
 
 function main() {
