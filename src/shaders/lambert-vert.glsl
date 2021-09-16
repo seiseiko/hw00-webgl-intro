@@ -7,6 +7,7 @@
 //This simultaneous transformation allows your program to run much faster, especially when rendering
 //geometry with millions of vertices.
 
+uniform float u_Time;       // Current time
 uniform mat4 u_Model;       // The matrix that defines the transformation of the
                             // object we're rendering. In this assignment,
                             // this will be the result of traversing your scene graph.
@@ -28,9 +29,23 @@ in vec4 vs_Col;             // The array of vertex colors passed to the shader.
 out vec4 fs_Nor;            // The array of normals that has been transformed by u_ModelInvTr. This is implicitly passed to the fragment shader.
 out vec4 fs_LightVec;       // The direction in which our virtual light lies, relative to each vertex. This is implicitly passed to the fragment shader.
 out vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.
+out vec4 fs_Pos;
 
 const vec4 lightPos = vec4(5, 5, 3, 1); //The position of our virtual light, which is used to compute the shading of
                                         //the geometry in the fragment shader.
+
+mat4 rotationMatrix(vec3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+    
+    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                0.0,                                0.0,                                0.0,                                1.0);
+}
 
 void main()
 {
@@ -43,11 +58,24 @@ void main()
                                                             // perpendicular to the surface after the surface is transformed by
                                                             // the model matrix.
 
+    // calculate a scale factor.
+    vec4 centre = vec4(0.0, 0.0, 0.0, 1.0);
+    vec4 a = normalize(vs_Pos - centre);
+    vec4 p = 2.0 * a;
+    p = vec4(p.xyz, 1.0);
+    float t_1 = clamp(abs(cos(u_Time*0.01)), 0.0, 1.0);
+    float t_2 = clamp(abs(tan(u_Time*0.01)), 0.0, 1.0);
+    vec4 pos = vs_Pos;
+    pos.x = mix(pos.x, p.x, t_1);
+    pos.y = mix(pos.y, p.y, t_2);
+    pos.z = mix(pos.z, p.z, t_2);
 
-    vec4 modelposition = u_Model * vs_Pos;   // Temporarily store the transformed vertex positions for use below
+    mat4 rot = rotationMatrix(vec3(cos(0.005*u_Time),sin(0.005*u_Time),sin(0.005*u_Time)),5.0);
+    pos = pos * rot;
+    vec4 modelposition = u_Model * pos;   // Temporarily store the transformed vertex positions for use below
 
     fs_LightVec = lightPos - modelposition;  // Compute the direction in which the light source lies
-
+    fs_Pos = modelposition;
     gl_Position = u_ViewProj * modelposition;// gl_Position is a built-in variable of OpenGL which is
                                              // used to render the final positions of the geometry's vertices
 }
