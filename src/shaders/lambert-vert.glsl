@@ -34,6 +34,56 @@ out vec4 fs_Pos;
 const vec4 lightPos = vec4(5, 5, 3, 1); //The position of our virtual light, which is used to compute the shading of
                                         //the geometry in the fragment shader.
 
+
+// FBM start
+float rand(float co) { return fract(sin(co*(91.3458)) * 47453.5453); }
+
+
+vec4 mod289(vec4 x){
+    return x - floor(x * (1.0 / 289.0)) * 289.0;
+}
+vec4 perm(vec4 x){
+    return mod289(((x * 34.0) + 1.0) * x);
+}
+
+float noise(vec3 p){
+    vec3 a = floor(p);
+    vec3 d = p - a;
+    d = d * d * (3.0 - 2.0 * d);
+
+    vec4 b = a.xxyy + vec4(0.0, 1.0, 0.0, 1.0);
+    vec4 k1 = perm(b.xyxy);
+    vec4 k2 = perm(k1.xyxy + b.zzww);
+
+    vec4 c = k2 + a.zzzz;
+    vec4 k3 = perm(c);
+    vec4 k4 = perm(c + 1.0);
+
+    vec4 o1 = fract(k3 * (1.0 / 41.0));
+    vec4 o2 = fract(k4 * (1.0 / 41.0));
+
+    vec4 o3 = o2 * d.z + o1 * (1.0 - d.z);
+    vec2 o4 = o3.yw * d.x + o3.xz * (1.0 - d.x);
+
+    return o4.y * d.y + o4.x * (1.0 - d.y);
+}
+
+#define OCTAVES 15
+float fbm(vec3 x) {
+	float v = 0.0;
+	float a = 0.5;
+	vec3 shift = vec3(100.0);
+	for (int i = 0; i < OCTAVES; ++i) {
+		v += a * noise(x);
+		x = x * 2.0 + shift;
+		a *= 0.5;
+	}
+	return v;
+}
+
+// 3D FBM end
+
+// calculate rotation matrix
 mat4 rotationMatrix(vec3 axis, float angle)
 {
     axis = normalize(axis);
@@ -58,20 +108,52 @@ void main()
                                                             // perpendicular to the surface after the surface is transformed by
                                                             // the model matrix.
 
-    // calculate a scale factor.
-    vec4 centre = vec4(0.0, 0.0, 0.0, 1.0);
-    vec4 a = normalize(vs_Pos - centre);
-    vec4 p = 2.0 * a;
-    p = vec4(p.xyz, 1.0);
-    float t_1 = clamp(abs(cos(u_Time*0.01)), 0.0, 1.0);
-    float t_2 = clamp(abs(tan(u_Time*0.01)), 0.0, 1.0);
+    // offset the vertices to form biomes
+    float noise = fbm(vec3(sin(0.005*u_Time))+vec3(vs_Pos)); 
     vec4 pos = vs_Pos;
-    pos.x = mix(pos.x, p.x, t_1);
-    pos.y = mix(pos.y, p.y, t_2);
-    pos.z = mix(pos.z, p.z, t_2);
+    // creating some building like stuff
+    if(noise>0.9){                
+        pos = pos + fs_Nor*noise*0.5;
+        fs_Col = vec4(0.0, 1.0, 0.9176, 1.0);   
+    }
+    else if(noise>0.85){                
+        pos = pos + fs_Nor*noise*0.5;
+        fs_Col = vec4(1.0, 1.0, 1.0, 1.0);   
+    }
+    else if(noise>0.75){                 
+        pos = pos + fs_Nor*noise*0.3;
+        fs_Col = vec4(0.5922, 0.7216, 0.8941, 1.0);   
+    }
+    else if(noise>0.65){                 
+        pos = pos + fs_Nor*noise*0.3;
+        fs_Col = vec4(0.0314, 0.302, 0.0196, 1.0);   
+    }
+    else if (noise > 0.54){
+        pos = pos + fs_Nor*noise*0.2; 
+        fs_Col = vec4(0.0039, 0.4314, 0.0235, 1.0);    
+    }
+    else if (noise > 0.5){
+        pos = pos + fs_Nor*noise*0.2; 
+        fs_Col = vec4(0.8471, 0.7294, 0.4706, 1.0);    
+    }
+    else if (noise > 0.4){
+        pos = pos + fs_Nor*noise*0.1; 
+        fs_Col = vec4(0.1451, 0.1333, 0.8784, 0.925);    
+    }
+    else if (noise > 0.35){
+        pos = pos + fs_Nor*noise*0.1; 
+        fs_Col = vec4(0.0078, 0.0039, 0.4275, 1.0);    
+    }
+    else if (noise > 0.15){
+        pos = pos + fs_Nor*noise*0.1; 
+        fs_Col = vec4(0.0157, 0.0824, 0.2078, 1.0);    
+    }
+    else if(noise < 0.15){
+        pos = pos - fs_Nor*noise*0.2;
+        fs_Col = vec4(0.0, 0.0, 0.0, 1.0);  
+    }
 
-    mat4 rot = rotationMatrix(vec3(cos(0.005*u_Time),sin(0.005*u_Time),sin(0.005*u_Time)),5.0);
-    pos = pos * rot;
+    
     vec4 modelposition = u_Model * pos;   // Temporarily store the transformed vertex positions for use below
 
     fs_LightVec = lightPos - modelposition;  // Compute the direction in which the light source lies

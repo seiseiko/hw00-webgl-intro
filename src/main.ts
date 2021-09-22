@@ -30,8 +30,8 @@ function loadScene() {
   //square = new Square(vec3.fromValues(0, 0, 0));
   //square.create();
 
-  cube = new Cube(vec3.fromValues(0, 0, 0));
-  cube.create();
+  //cube = new Cube(vec3.fromValues(0, 0, 0));
+  //cube.create();
 
 }
 
@@ -46,7 +46,7 @@ function main() {
 
   // Add controls to the gui
   const gui = new DAT.GUI();
-  gui.add(controls, 'tesselations', 0, 8).step(1);
+  gui.add(controls, 'tesselations', 0, 9).step(1);
   gui.add(controls, 'Load Scene');
   gui.addColor(controls, 'color');
 
@@ -93,7 +93,7 @@ function main() {
       controls.color[1]/255.0,controls.color[2]/255.0, 1));
 
     renderer.render(camera, lambert, [
-      cube
+      icosphere
     ]);
     stats.end();
 

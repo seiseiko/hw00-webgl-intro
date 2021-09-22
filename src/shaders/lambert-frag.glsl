@@ -73,14 +73,14 @@ float fbm(vec3 x) {
 void main()
 {
     // Material base color (before shading)
-        vec4 diffuseColor = u_Color;
+        vec4 diffuseColor = fs_Col;
 
         // Calculate the diffuse term for Lambert shading
         float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
         // Avoid negative lighting values
-        // diffuseTerm = clamp(diffuseTerm, 0, 1);
+        diffuseTerm = clamp(diffuseTerm, 0.0, 1.0);
 
-        float ambientTerm = 0.2;
+        float ambientTerm = 0.8;
 
         float lightIntensity = diffuseTerm + ambientTerm;   //Add a small float value to the color multiplier
                                                             //to simulate ambient lighting. This ensures that faces that are not
@@ -89,5 +89,5 @@ void main()
         // Compute final shaded color
         float noise = fbm(vec3(fs_Pos));
         vec3 new_color = vec3(1.0)-diffuseColor.rgb;
-        out_Col = vec4(mix(diffuseColor.rgb,new_color,noise) * lightIntensity, diffuseColor.a);
+        out_Col = vec4(diffuseColor.rgb* lightIntensity, diffuseColor.a);
 }
