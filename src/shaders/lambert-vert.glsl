@@ -113,12 +113,12 @@ void main()
     vec4 pos = vs_Pos;
     // creating some building like stuff
     if(noise>0.9){                
-        pos = pos + fs_Nor*noise*0.5;
-        fs_Col = vec4(0.0, 1.0, 0.9176, 1.0);   
+        pos = pos + fs_Nor*noise*0.3;
+        fs_Col = vec4(0.1059, 0.5804, 0.2627, 1.0);   
     }
-    else if(noise>0.85){                
-        pos = pos + fs_Nor*noise*0.5;
-        fs_Col = vec4(1.0, 1.0, 1.0, 1.0);   
+    else if(noise>0.80){                
+        pos = pos + fs_Nor*noise*0.3;
+        fs_Col = vec4(0.4941, 0.9216, 0.549, 1.0);   
     }
     else if(noise>0.75){                 
         pos = pos + fs_Nor*noise*0.3;
@@ -126,33 +126,32 @@ void main()
     }
     else if(noise>0.65){                 
         pos = pos + fs_Nor*noise*0.3;
-        fs_Col = vec4(0.0314, 0.302, 0.0196, 1.0);   
+        fs_Col = vec4(1.0, 1.0, 1.0, 1.0);   
     }
     else if (noise > 0.54){
         pos = pos + fs_Nor*noise*0.2; 
-        fs_Col = vec4(0.0039, 0.4314, 0.0235, 1.0);    
+        fs_Col = vec4(1.0, 1.0, 1.0, 1.0);    
     }
     else if (noise > 0.5){
         pos = pos + fs_Nor*noise*0.2; 
-        fs_Col = vec4(0.8471, 0.7294, 0.4706, 1.0);    
+        fs_Col = vec4(0.7608, 0.8549, 0.9686, 1.0);    
     }
-    else if (noise > 0.4){
-        pos = pos + fs_Nor*noise*0.1; 
-        fs_Col = vec4(0.1451, 0.1333, 0.8784, 0.925);    
+    else if (noise > 0.38){
+        pos = pos + fs_Nor*noise*0.2; 
+        fs_Col = vec4(0.4118, 0.6902, 0.8784, 0.925);    
     }
     else if (noise > 0.35){
         pos = pos + fs_Nor*noise*0.1; 
-        fs_Col = vec4(0.0078, 0.0039, 0.4275, 1.0);    
+        fs_Col = vec4(0.2196, 0.3373, 0.7255, 1.0);    
     }
     else if (noise > 0.15){
         pos = pos + fs_Nor*noise*0.1; 
-        fs_Col = vec4(0.0157, 0.0824, 0.2078, 1.0);    
+        fs_Col = vec4(0.0863, 0.2, 0.8471, 1.0);    
     }
     else if(noise < 0.15){
         pos = pos - fs_Nor*noise*0.2;
         fs_Col = vec4(0.0, 0.0, 0.0, 1.0);  
     }
-
     
     vec4 modelposition = u_Model * pos;   // Temporarily store the transformed vertex positions for use below
 
