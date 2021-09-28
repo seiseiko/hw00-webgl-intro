@@ -6,6 +6,10 @@
 //If it were run on your CPU, each vertex would have to be processed in a FOR loop, one at a time.
 //This simultaneous transformation allows your program to run much faster, especially when rendering
 //geometry with millions of vertices.
+#define MAX_CRATERS 10
+
+uniform int size;
+uniform vec3 lights[MAX_LIGHTS];
 
 uniform float u_Time;       // Current time
 uniform mat4 u_Model;       // The matrix that defines the transformation of the
@@ -83,19 +87,6 @@ float fbm(vec3 x) {
 
 // 3D FBM end
 
-// calculate rotation matrix
-mat4 rotationMatrix(vec3 axis, float angle)
-{
-    axis = normalize(axis);
-    float s = sin(angle);
-    float c = cos(angle);
-    float oc = 1.0 - c;
-    
-    return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
-                oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
-                oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
-                0.0,                                0.0,                                0.0,                                1.0);
-}
 
 void main()
 {
@@ -109,49 +100,13 @@ void main()
                                                             // the model matrix.
 
     // offset the vertices to form biomes
-    float noise = fbm(vec3(sin(0.005*u_Time))+vec3(vs_Pos)); 
+    vec3 noise_input = vec3(sin(0.005*u_Time))+vec3(vs_Pos);
+    float noise = fbm(noise_input);
+    noise = fbm(vec3(noise)+noise_input);
+    noise = fbm(vec3(noise)+noise_input); 
     vec4 pos = vs_Pos;
-    // creating some building like stuff
-    if(noise>0.9){                
-        pos = pos + fs_Nor*noise*0.3;
-        fs_Col = vec4(0.1059, 0.5804, 0.2627, 1.0);   
-    }
-    else if(noise>0.80){                
-        pos = pos + fs_Nor*noise*0.3;
-        fs_Col = vec4(0.4941, 0.9216, 0.549, 1.0);   
-    }
-    else if(noise>0.75){                 
-        pos = pos + fs_Nor*noise*0.3;
-        fs_Col = vec4(0.5922, 0.7216, 0.8941, 1.0);   
-    }
-    else if(noise>0.65){                 
-        pos = pos + fs_Nor*noise*0.3;
-        fs_Col = vec4(1.0, 1.0, 1.0, 1.0);   
-    }
-    else if (noise > 0.54){
-        pos = pos + fs_Nor*noise*0.2; 
-        fs_Col = vec4(1.0, 1.0, 1.0, 1.0);    
-    }
-    else if (noise > 0.5){
-        pos = pos + fs_Nor*noise*0.2; 
-        fs_Col = vec4(0.7608, 0.8549, 0.9686, 1.0);    
-    }
-    else if (noise > 0.38){
-        pos = pos + fs_Nor*noise*0.2; 
-        fs_Col = vec4(0.4118, 0.6902, 0.8784, 0.925);    
-    }
-    else if (noise > 0.35){
-        pos = pos + fs_Nor*noise*0.1; 
-        fs_Col = vec4(0.2196, 0.3373, 0.7255, 1.0);    
-    }
-    else if (noise > 0.15){
-        pos = pos + fs_Nor*noise*0.1; 
-        fs_Col = vec4(0.0863, 0.2, 0.8471, 1.0);    
-    }
-    else if(noise < 0.15){
-        pos = pos - fs_Nor*noise*0.2;
-        fs_Col = vec4(0.0, 0.0, 0.0, 1.0);  
-    }
+    pos = pos + noise * fs_Nor;
+    // creating some building like stuff   
     
     vec4 modelposition = u_Model * pos;   // Temporarily store the transformed vertex positions for use below
 

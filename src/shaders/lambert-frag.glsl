@@ -19,7 +19,7 @@ in vec4 fs_Nor;
 in vec4 fs_LightVec;
 in vec4 fs_Col;
 in vec4 fs_Pos;
-
+in float fs_elevation;
 out vec4 out_Col; // This is the final output color that you will see on your
                   // screen for the pixel that is currently being processed.
 
@@ -73,7 +73,34 @@ float fbm(vec3 x) {
 void main()
 {
     // Material base color (before shading)
-        vec4 diffuseColor = fs_Col;
+         // Compute final shaded color
+        vec4 col;
+        // creating some building like stuff
+        if(fs_elevation>0.9){                
+            col = vec4(0.0039, 0.7686, 1.0, 1.0);   
+        }
+        else if(fs_elevation>0.80){                
+            col = vec4(1.0, 0.0, 0.0, 1.0);   
+        }
+        else if(fs_elevation>0.75){                 
+            col = vec4(0.9333, 1.0, 0.0, 1.0);   
+        }
+        else if(fs_elevation>0.4){                 
+            col = vec4(0.1725, 1.0, 1.0, 1.0);   
+        }
+        else if (fs_elevation> 0.3){
+            col = vec4(0.0078, 1.0, 0.4235, 1.0);    
+        }
+        else if (fs_elevation > 0.0){
+            col = vec4(0.9451, 0.9333, 0.7176, 1.0);    
+        }
+        else if (fs_elevation > -1.0){
+            col = vec4(0.0, 0.1843, 1.0, 1.0);    
+        }
+        else if (fs_elevation == -1.0)
+            col = vec4(0.0, 0.0, 0.0, 1.0);    
+        }
+        vec4 diffuseColor = col;
 
         // Calculate the diffuse term for Lambert shading
         float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
@@ -86,8 +113,6 @@ void main()
                                                             //to simulate ambient lighting. This ensures that faces that are not
                                                             //lit by our point light are not completely black.
 
-        // Compute final shaded color
-        float noise = fbm(vec3(fs_Pos));
-        vec3 new_color = vec3(1.0)-diffuseColor.rgb;
+
         out_Col = vec4(diffuseColor.rgb* lightIntensity, diffuseColor.a);
 }
