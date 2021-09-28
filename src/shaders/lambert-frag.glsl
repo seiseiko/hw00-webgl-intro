@@ -23,84 +23,40 @@ in float fs_elevation;
 out vec4 out_Col; // This is the final output color that you will see on your
                   // screen for the pixel that is currently being processed.
 
-float rand(float co) { return fract(sin(co*(91.3458)) * 47453.5453); }
+// Returns dstToSphere, dstThroughSphere
+// If inside sphere, dstToSphere will be 0
+// If ray misses sphere, dstToSphere = max float value, dstThroughSphere = 0
+// Given rayDir must be normalized
+vec2 raySphere(vec3 centre, float radius, vec3 rayOrigin, vec3 rayDir) {
+    vec3 offset = rayOrigin - centre;
+    const float a = 1.0; // set to dot(rayDir, rayDir) instead if rayDir may not be normalized
+    float b = 2.0 * dot(offset, rayDir);
+    float c = dot (offset, offset) - radius * radius;
 
+    float discriminant = b*b-4.0*a*c;
+    // No intersections: discriminant < 0
+    // 1 intersection: discriminant == 0
+    // 2 intersections: discriminant > 0
+    if (discriminant > 0.0) {
+        float s = sqrt(discriminant);
+        float dstToSphereNear = max(0.0, (-b - s) / (2.0 * a));
+        float dstToSphereFar = (-b + s) / (2.0 * a);
 
-vec4 mod289(vec4 x){
-    return x - floor(x * (1.0 / 289.0)) * 289.0;
-}
-vec4 perm(vec4 x){
-    return mod289(((x * 34.0) + 1.0) * x);
-}
-
-float noise(vec3 p){
-    vec3 a = floor(p);
-    vec3 d = p - a;
-    d = d * d * (3.0 - 2.0 * d);
-
-    vec4 b = a.xxyy + vec4(0.0, 1.0, 0.0, 1.0);
-    vec4 k1 = perm(b.xyxy);
-    vec4 k2 = perm(k1.xyxy + b.zzww);
-
-    vec4 c = k2 + a.zzzz;
-    vec4 k3 = perm(c);
-    vec4 k4 = perm(c + 1.0);
-
-    vec4 o1 = fract(k3 * (1.0 / 41.0));
-    vec4 o2 = fract(k4 * (1.0 / 41.0));
-
-    vec4 o3 = o2 * d.z + o1 * (1.0 - d.z);
-    vec2 o4 = o3.yw * d.x + o3.xz * (1.0 - d.x);
-
-    return o4.y * d.y + o4.x * (1.0 - d.y);
-}
-
-
-float fbm(vec3 x) {
-	float v = 0.0;
-	float a = 0.5;
-	vec3 shift = vec3(100.0);
-	for (int i = 0; i < 20; ++i) {
-		v += a * noise(x);
-		x = x * 2.0 + shift;
-		a *= 0.5;
-	}
-	return v;
+        if (dstToSphereFar >= 0.0) {
+            return float2(dstToSphereNear, dstToSphereFar - dstToSphereNear);
+        }
+    }
+	 // Ray did not intersect sphere
+    return float2(maxFloat, 0.0);
 }
 
 
 
 void main()
 {
-    // Material base color (before shading)
          // Compute final shaded color
         vec4 col;
-        // creating some building like stuff
-        if(fs_elevation>0.9){                
-            col = vec4(0.0039, 0.7686, 1.0, 1.0);   
-        }
-        else if(fs_elevation>0.80){                
-            col = vec4(1.0, 0.0, 0.0, 1.0);   
-        }
-        else if(fs_elevation>0.75){                 
-            col = vec4(0.9333, 1.0, 0.0, 1.0);   
-        }
-        else if(fs_elevation>0.4){                 
-            col = vec4(0.1725, 1.0, 1.0, 1.0);   
-        }
-        else if (fs_elevation> 0.3){
-            col = vec4(0.0078, 1.0, 0.4235, 1.0);    
-        }
-        else if (fs_elevation > 0.0){
-            col = vec4(0.9451, 0.9333, 0.7176, 1.0);    
-        }
-        else if (fs_elevation > -1.0){
-            col = vec4(0.0, 0.1843, 1.0, 1.0);    
-        }
-        else if (fs_elevation == -1.0)
-            col = vec4(0.0, 0.0, 0.0, 1.0);    
-        }
-        vec4 diffuseColor = col;
+        vec4 diffuseColor = u_Color;
 
         // Calculate the diffuse term for Lambert shading
         float diffuseTerm = dot(normalize(fs_Nor), normalize(fs_LightVec));
