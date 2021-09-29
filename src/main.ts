@@ -15,6 +15,7 @@ const controls = {
   tesselations: 5,
   'Load Scene': loadScene, // A function pointer, essentially
   color:[122,0,255],
+  'Set Text': Settexture,
 };
 
 let icosphere: Icosphere;
@@ -22,19 +23,17 @@ let square: Square;
 let cube: Cube;
 let time : number = 0;
 let prevTesselations: number = 5;
-
+let set_text: number = -1;
 function loadScene() {
   icosphere = new Icosphere(vec3.fromValues(0, 0, 0), 1, controls.tesselations);
   icosphere.create();
-
-  //square = new Square(vec3.fromValues(0, 0, 0));
-  //square.create();
-
-  //cube = new Cube(vec3.fromValues(0, 0, 0));
-  //cube.create();
-
+  if(set_text==1){
+    icosphere.loadTexture('https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/ab371d58-f694-4953-a2e5-c79acedd9f56/dcuxgeq-1005a082-f321-4d7c-80d7-5cb2e4ffda89.png?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcL2FiMzcxZDU4LWY2OTQtNDk1My1hMmU1LWM3OWFjZWRkOWY1NlwvZGN1eGdlcS0xMDA1YTA4Mi1mMzIxLTRkN2MtODBkNy01Y2IyZTRmZmRhODkucG5nIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.wAvefXk3lTLluz8RfuvjXvRWBMik2psG6kWva8Fbe2I');
+  }
+  }
+function Settexture(){
+  set_text = -set_text;
 }
-
 function main() {
   // Initial display for framerate
   const stats = Stats();
@@ -48,7 +47,8 @@ function main() {
   const gui = new DAT.GUI();
   gui.add(controls, 'tesselations', 0, 9).step(1);
   gui.add(controls, 'Load Scene');
-  gui.addColor(controls, 'color');
+  gui.add(controls, 'Set Text');
+  
 
   // set up GUI 
   var c = gui.addFolder('Terrain general setting');
@@ -63,6 +63,16 @@ function main() {
   c.add(continent_obj,'oceanFloorSmoothing',0,10);
   c.add(continent_obj,'mountainBlend',0,10);
   c.open();
+
+  var d = gui.addFolder('Light Position');
+  const lightpos_obj = {
+    x:5,
+    y:5,
+    z:3,
+  };
+  d.add(lightpos_obj,'x',-10,10);
+  d.add(lightpos_obj,'y',-10,10);
+  d.add(lightpos_obj,'z',-10,10);
   var f = gui.addFolder('Noise Control - Continent');
   const noise_con_obj = {
     octaves: 5,
@@ -87,7 +97,7 @@ function main() {
     persistance: 0.5,
     lacunarity: 0.5,
     scale: 1.5,
-    multiplier: 10.0,
+    multiplier: 11.0,
     power:3.0,
     gain:0.8,
     vertical_shift: 0.0,
@@ -186,8 +196,9 @@ function main() {
     lambert.setoceanFloorSmoothing(continent_obj.oceanFloorSmoothing);
     lambert.setmountainBlend(continent_obj.mountainBlend);
     
+    lambert.setTextBool(set_text);
     lambert.setCam(vec4.fromValues(camera.position[0],camera.position[1],camera.position[2],1.0));
-    
+    lambert.setLight(vec4.fromValues(lightpos_obj.x,lightpos_obj.y,lightpos_obj.z,1.0));
     renderer.render(camera, lambert, [
       icosphere
     ]);

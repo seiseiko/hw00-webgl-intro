@@ -33,6 +33,15 @@ class OpenGLRenderer {
     for (let drawable of drawables) {
       prog.draw(drawable);
     }
+    for (let drawable of drawables) {
+      if (drawable){
+        if (drawable.bindTex()){
+          prog.setText(drawable.getTex());
+          //console.log(drawable);
+        }
+        prog.draw(drawable);
+      }
+    }
   }
 };
 

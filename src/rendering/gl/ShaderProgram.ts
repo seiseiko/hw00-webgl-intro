@@ -38,7 +38,9 @@ class ShaderProgram {
   unifoceanFloorSmoothing:WebGLUniformLocation;
   unifmountainBlend:WebGLUniformLocation;
   unifCameraPos:WebGLUniformLocation;
-
+  unifLightPos:WebGLUniformLocation;
+  unifText:WebGLUniformLocation;
+  unifTextBool:WebGLUniformLocation;
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
 
@@ -59,6 +61,7 @@ class ShaderProgram {
     this.unifModel      = gl.getUniformLocation(this.prog, "u_Model");
     this.unifModelInvTr = gl.getUniformLocation(this.prog, "u_ModelInvTr");
     this.unifViewProj   = gl.getUniformLocation(this.prog, "u_ViewProj");
+    this.unifLightPos = gl.getUniformLocation(this.prog,"u_Light_pos");
 
     // Customized 
     this.unifColor      = gl.getUniformLocation(this.prog, "u_Color");
@@ -70,7 +73,8 @@ class ShaderProgram {
     this.unifNoise_Con = gl.getUniformLocation(this.prog, "noise_params_continent");
     this.unifNoise_Ridge = gl.getUniformLocation(this.prog, "noise_params_ridge");
     this.unifNoise_Mask = gl.getUniformLocation(this.prog, "noise_params_mask");
-    
+    this.unifText       = gl.getUniformLocation(this.prog, "u_Text");
+    this.unifTextBool   =  gl.getUniformLocation(this.prog, "u_TextBool");
   }
 
   use() {
@@ -85,7 +89,21 @@ class ShaderProgram {
       gl.uniform4fv(this.unifCameraPos, color);
     }
   }
-
+  setLight(color: vec4) {
+    this.use();
+    if (this.unifLightPos !== -1) {
+      gl.uniform4fv(this.unifLightPos, color);
+    }
+  }
+  
+  setText(text: WebGLTexture){
+    this.use();
+    if (this.unifText !== -1) {
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, text);
+      gl.uniform1i(this.unifText, 0);
+    }
+  }
   setModelMatrix(model: mat4) {
     this.use();
     if (this.unifModel !== -1) {
@@ -145,6 +163,12 @@ class ShaderProgram {
     this.use();
     if (this.unifmountainBlend !== -1) {
       gl.uniform1f(this.unifmountainBlend, mountainBlend);
+    }
+  }
+  setTextBool(n: number) {
+    this.use();
+    if (this.unifTextBool !== -1) {
+      gl.uniform1f(this.unifTextBool, n);
     }
   }
   setNoise_Con(noise_par: Float32Array) {
