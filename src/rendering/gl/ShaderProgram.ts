@@ -38,7 +38,6 @@ class ShaderProgram {
   unifoceanFloorSmoothing:WebGLUniformLocation;
   unifmountainBlend:WebGLUniformLocation;
   unifCameraPos:WebGLUniformLocation;
-  unifView:WebGLUniformLocation;
 
   constructor(shaders: Array<Shader>) {
     this.prog = gl.createProgram();
@@ -56,8 +55,7 @@ class ShaderProgram {
     this.attrCol = gl.getAttribLocation(this.prog, "vs_Col");
 
     // Camera Stuff
-    this.unifCameraPos = gl.getAttribLocation(this.prog,"u_Camera_Pos")
-    this.unifView = gl.getAttribLocation(this.prog,"u_View")
+    this.unifCameraPos = gl.getUniformLocation(this.prog,"u_CamPos");
     this.unifModel      = gl.getUniformLocation(this.prog, "u_Model");
     this.unifModelInvTr = gl.getUniformLocation(this.prog, "u_ModelInvTr");
     this.unifViewProj   = gl.getUniformLocation(this.prog, "u_ViewProj");
@@ -81,18 +79,13 @@ class ShaderProgram {
       activeProgram = this.prog;
     }
   }
-  setCameraPos(cameraPos: vec3) {
+  setCam(color: vec4) {
     this.use();
     if (this.unifCameraPos !== -1) {
-      gl.uniform4fv(this.unifCameraPos, cameraPos);
+      gl.uniform4fv(this.unifCameraPos, color);
     }
   }
-  setView(view: vec3) {
-    this.use();
-    if (this.unifView !== -1) {
-      gl.uniform4fv(this.unifView, view);
-    }
-  }
+
   setModelMatrix(model: mat4) {
     this.use();
     if (this.unifModel !== -1) {

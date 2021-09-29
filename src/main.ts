@@ -185,6 +185,9 @@ function main() {
     lambert.setoceanFloorDepth(continent_obj.oceanFloorDepth);
     lambert.setoceanFloorSmoothing(continent_obj.oceanFloorSmoothing);
     lambert.setmountainBlend(continent_obj.mountainBlend);
+    
+    lambert.setCam(vec4.fromValues(camera.position[0],camera.position[1],camera.position[2],1.0));
+    
     renderer.render(camera, lambert, [
       icosphere
     ]);

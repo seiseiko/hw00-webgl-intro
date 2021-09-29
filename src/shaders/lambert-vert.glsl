@@ -182,9 +182,11 @@ out vec4 fs_Nor;            // The array of normals that has been transformed by
 out vec4 fs_LightVec;       // The direction in which our virtual light lies, relative to each vertex. This is implicitly passed to the fragment shader.
 out vec4 fs_Col;            // The color of each vertex. This is implicitly passed to the fragment shader.
 out vec4 fs_Pos;
-
+out float fs_eleveation;
 const vec4 lightPos = vec4(5, 5, 3, 1); //The position of our virtual light, which is used to compute the shading of
                                         //the geometry in the fragment shader.
+
+
 
 /** rigid noise_params[9] 
     [0] octaves [1] persistance [2] lacunarity 
@@ -202,7 +204,6 @@ float ridgidNoise(vec3 pos, float noise_params[9]) {
     float gain = noise_params[6];
     float verticalShift = noise_params[7];
     float amplitude = noise_params[8];
-
 
 	// Sum up noise layers
 	float noiseSum = 0.0;
@@ -275,6 +276,46 @@ float terrain_generate(vec3 p){
     return continent_noise * 0.02 + ridgeNoise  * 0.02 * mask;
 }
 
+vec3 to_polar(vec4 p) {
+  return vec3(sqrt(p.x * p.x + p.y * p.y + p.z * p.z), 
+  atan(p.y / p.x), 
+  acos(p.z / sqrt(p.x * p.x + p.y * p.y + p.z * p.z)));
+}
+
+vec4 toWorld(vec4 nor) {
+  vec3 normal = normalize(vec3(vs_Nor));
+  vec3 tangent = normalize(cross(vec3(0.0, 1.0, 0.0), normal));
+  vec3 bitangent = normalize(cross(normal, tangent));
+  mat4 transform;
+  transform[0] = vec4(tangent, 0.0);
+  transform[1] = vec4(bitangent, 0.0);
+  transform[2] = vec4(normal, 0.0);
+  transform[3] = vec4(0.0, 0.0, 0.0, 1.0);
+  return vec4(normalize(vec3(transform * nor)), 0.0); 
+} 
+
+vec4 to_cart(float r, float theta, float phi) {
+  return vec4(r * sin(phi) * cos(theta), 
+              r * sin(phi) * sin(theta),
+              r * cos(phi), 1.);
+}
+
+vec4 cal_normal(vec4 p) {
+  vec3 pp = to_polar(p);
+  float alpha = .0001;
+  float n1 = terrain_generate(vec3(to_cart(pp.x, pp.y + alpha, pp.z)));
+  float n2 = terrain_generate(vec3(to_cart(pp.x, pp.y - alpha, pp.z)));
+  float n3 = terrain_generate(vec3(to_cart(pp.x, pp.y, pp.z + alpha)));
+  float n4 = terrain_generate(vec3(to_cart(pp.x, pp.y, pp.z + alpha)));
+  float multiplier = 800.0;
+  float xDiff = multiplier * (n1 - n2) ;
+  float yDiff = multiplier * (n3 - n4) ;
+  p.z = sqrt(1. - xDiff * xDiff - yDiff * yDiff);
+  
+  return toWorld(normalize(vec4(vec3(xDiff, yDiff, p.z), 0.0)));
+}
+
+
 // calculate crater influence 
 float crater_height(vec3 p){
 
@@ -291,7 +332,7 @@ void main()
     fs_Col = vs_Col;                         // Pass the vertex colors to the fragment shader for interpolation
 
     mat3 invTranspose = mat3(u_ModelInvTr);
-    fs_Nor = vec4(invTranspose * vec3(vs_Nor), 0);          // Pass the vertex normals to the fragment shader for interpolation.
+    fs_Nor = vec4(invTranspose * vec3(vs_Nor), 0.0);          // Pass the vertex normals to the fragment shader for interpolation.
                                                             // Transform the geometry's normals by the inverse transpose of the
                                                             // model matrix. This is necessary to ensure the normals remain
                                                             // perpendicular to the surface after the surface is transformed by
@@ -301,12 +342,19 @@ void main()
     vec3 noise_input = vec3(vs_Pos);
     vec4 pos = vs_Pos;
     float noise = terrain_generate(noise_input);
+    fs_eleveation = noise;
     pos = pos + noise * fs_Nor;
-    
+
+           
     vec4 modelposition = u_Model * pos;   // Temporarily store the transformed vertex positions for use below
 
     fs_LightVec = lightPos - modelposition;  // Compute the direction in which the light source lies
     fs_Pos = modelposition;
+    
+    fs_LightVec = lightPos - modelposition;
+
+    // calculate 
+    fs_Nor = cal_normal(vs_Pos);
     gl_Position = u_ViewProj * modelposition;// gl_Position is a built-in variable of OpenGL which is
                                              // used to render the final positions of the geometry's vertices
 }
